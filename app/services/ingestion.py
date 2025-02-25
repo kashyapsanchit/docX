@@ -1,9 +1,10 @@
 import uuid
 from typing import List
-from app.db.qdrant import qdrant_client, COLLECTION_NAME
+from app.db.qdrant import qdrant_client
 from app.utils.embedding_utils import EmbeddingUtils
 from app.utils.document_processor import extract_data_from_document
 from qdrant_client.models import PointStruct
+from app.core.config import settings
 from app.core.logger import logger
 
 class Ingestion(EmbeddingUtils):
@@ -41,4 +42,4 @@ class Ingestion(EmbeddingUtils):
         """Upsert points into Qdrant with batching."""
         for i in range(0, len(points), batch_size):
             batch = points[i:i + batch_size]
-            self.qdrant_client.upsert(collection_name=COLLECTION_NAME, points=batch)
+            self.qdrant_client.upsert(collection_name=settings.QDRANT_COLLECTION_NAME, points=batch)

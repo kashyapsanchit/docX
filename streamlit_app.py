@@ -2,14 +2,14 @@ import streamlit as st
 import requests
 import uuid
 from PIL import Image
-from app.db.qdrant import qdrant_client, COLLECTION_NAME
-
+from app.db.qdrant import qdrant_client
+from app.core.config import settings
 
 def get_uploaded_documents():
     """Fetch uploaded documents."""
 
     response = qdrant_client.scroll(
-        collection_name=COLLECTION_NAME,
+        collection_name=settings.QDRANT_COLLECTION_NAME,
         scroll_filter=None,
         limit=1000 
     )

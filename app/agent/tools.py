@@ -2,8 +2,9 @@ from langchain.tools import StructuredTool
 from app.utils.embedding_utils import EmbeddingUtils
 from app.core.logger import logger
 from qdrant_client.models import Filter, FieldCondition, MatchValue
-from app.db.qdrant import qdrant_client, COLLECTION_NAME
+from app.db.qdrant import qdrant_client
 from typing import List, Dict, Optional
+from app.core.config import settings
 
 def search_document(query: str, doc_titles: List[str], limit: int = 30, client=qdrant_client) -> Dict[str, str]:
     """Fetches relevant data from documents in Qdrant collection based on query and document titles.
@@ -31,9 +32,9 @@ def search_document(query: str, doc_titles: List[str], limit: int = 30, client=q
             should=[FieldCondition(key="title", match=MatchValue(value=doc)) for doc in doc_titles]
         )
 
-        logger.info(f"Performing search in collection '{COLLECTION_NAME}' with limit {limit}")
+        logger.info(f"Performing search in collection '{settings.QDRANT_COLLECTION_NAME}' with limit {limit}")
         response = client.search(
-            collection_name=COLLECTION_NAME,
+            collection_name=settings.QDRANT_COLLECTION_NAME,
             query_vector=query_embedding,
             query_filter=search_filter,
             limit=limit
