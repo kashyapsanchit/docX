@@ -3,16 +3,27 @@ from app.utils.embedding_utils import EmbeddingUtils
 from app.core.logger import logger
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from app.db.qdrant import qdrant_client, COLLECTION_NAME
+from typing import List, Dict, Optional
 
-def search_document(query: str, doc_titles: list = None):
-    """Fetches relevant data from documents in Qdrant collection based on query and document titles"""
+def search_document(query: str, doc_titles: List[str], limit: int = 30, client=qdrant_client) -> Dict[str, str]:
+    """Fetches relevant data from documents in Qdrant collection based on query and document titles.
+
+    Args:
+        query (str): User's search query.
+        doc_titles (List[str]): List of document titles to search within.
+        limit (int): Max number of results to return. Defaults to 30.
+        client (QdrantClient): Instance of the Qdrant client.
+
+    Returns:
+        Dict[str, str]: Search results or error message.
+    """
     try:
-        if not query:
+        if not query.strip():
             raise ValueError("Query cannot be empty.")
         if not doc_titles:
             raise ValueError("Document titles cannot be empty.")
-        import pdb; pdb.set_trace()
 
+        logger.info(f"Generating embedding for query: {query}")
         embedding_utils = EmbeddingUtils()
         query_embedding = embedding_utils.generate_embedding(query)
 
@@ -20,26 +31,30 @@ def search_document(query: str, doc_titles: list = None):
             should=[FieldCondition(key="title", match=MatchValue(value=doc)) for doc in doc_titles]
         )
 
-        response = qdrant_client.search(
+        logger.info(f"Performing search in collection '{COLLECTION_NAME}' with limit {limit}")
+        response = client.search(
             collection_name=COLLECTION_NAME,
             query_vector=query_embedding,
             query_filter=search_filter,
-            limit=30
+            limit=limit
         )
 
         if not response:
+            logger.info(f"No results found for query: {query}")
             return {
                 "response": f"No relevant information found in '{doc_titles}' for the query."
             }
-        
 
-        return {
-            "response": " ".join([point.payload['text'] for point in response])
-        }
+        combined_text = " ".join([point.payload['text'] for point in response])
+        logger.info(f"Found {len(response)} matching documents.")
+        return {"response": combined_text}
 
+    except ValueError as ve:
+        logger.warning(f"Validation error: {str(ve)}")
+        raise ve
     except Exception as e:
         logger.error(f"Error while searching document: {str(e)}")
-        raise ValueError(f"Error while searching document: {str(e)}")
+        raise RuntimeError(f"Search failed: {str(e)}")
 
 
 search_document_tool = StructuredTool.from_function(
@@ -48,6 +63,7 @@ search_document_tool = StructuredTool.from_function(
     Parameters:
     - query: str
     - doc_titles: list[str]
+    - limit: int (optional, defaults to 30)
     Returns:
     - response: dict
     """,

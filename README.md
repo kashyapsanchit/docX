@@ -18,3 +18,30 @@ The Document Retrieval Q/A RAG System leverages FastAPI, Qdrant, and the all-Min
 - **Interactive Frontend**: Streamlit interface ensures a user-friendly experience for uploading, selecting, and querying documents.
 
 This system integrates powerful tools to deliver an efficient and flexible document-based Q&A experience, catering to diverse user needs.
+
+## Setting up the project
+
+- **Clone the repository**: Clone the repository using the below command.
+```bash
+git clone https://github.com/kashyapsanchit/docX.git
+```
+- **Create a virtual environment**: In the cloned folder create a virtual environment and activate it.
+```bash
+python3 -m venv env
+source env/bin/activate
+.\env\Scripts\activate # For Windows
+```
+- **Install Dependencies**: Install all the dependencies in the requirements.txt file.
+```bash
+pip install -r requirements.txt
+```
+- **Run the backend**: Inside the project folder run the following command.
+```bash
+uvicorn app.main:app --reload
+```
+- **Run the frontend**: Inside the project folder run the following command.
+```bash
+streamlit run streamlit_app.py
+```
+- **Access**: The project will be up and running at `http://localhost:8501`
+

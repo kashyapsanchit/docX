@@ -3,49 +3,54 @@ from app.agent.state import State
 from langchain_groq import ChatGroq
 from app.core.config import settings
 from app.agent.tools import tools
+from app.agent.constants import SYSTEM_PROMPT
 from langgraph.prebuilt import create_react_agent
 import json
-
-def assistant(state: State):
-
-    llm = ChatGroq(model=settings.MODEL_NAME, api_key=settings.GROQ_KEY)
-
-    system_message = SystemMessage(content="""You are a helpful assistant.
-
-    Your task is to retrieve the most relevant chunks from the Qdrant vector store using the `search_document` tool and provide a concise, well-structured response to the user.
-
-    **Guidelines:**
-    - Use the `search_document` tool with **exact** `doc_titles` provided by the user. Do not modify, paraphrase, or enhance them.
-    - Ensure all tool calls include the correct parameters.
-    - Once you receive the tool's response, use **only** that information to generate the final answer. **Do not** invoke any other tools.
-    - Craft your answer to be brief, informative, and based solely on the tool's output.
-
-    **Response Format:**
-    Your final response **must** be a valid JSON object in the following structure and should include nothing else:
-
-    {
-        "response": "Your concise, brief and well-structured answer based on the tool's output."
-    }
-    """)
-    
-    human_message = HumanMessage(content=f"""Here is the user's query: {state['query']}.\n
-    Use the following document titles **exactly as provided** when calling the `search_document` tool:\n
-    {json.dumps(state['doc_titles'])}
-    """)
-
-    agent = create_react_agent(llm, tools)
-
-    inputs = {"messages": [system_message, human_message]}
-
-    llm_response = agent.invoke(inputs)
+from typing import Dict, Any
+from app.core.logger import logger
 
 
-    res = json.loads(llm_response['messages'][-1].content)
 
-    if res['response']:
-        state['response'] = res['response']
-    else:
-        state['response'] = "Sorry I could not find any relevant information in the document(s) for your query."
+def assistant(state: State, llm: ChatGroq = None) -> Dict[str, Any]:
+    """Handles user queries by invoking the LLM with a ReAct agent and returning structured responses.
 
+    Args:
+        state (State): The current state including user query and document titles.
+        llm (ChatGroq, optional): Pre-initialized LLM instance. Defaults to None.
 
-    return state
+    Returns:
+        Dict[str, Any]: Updated state with the assistant's response.
+    """
+    try:
+        if llm is None:
+            logger.info("Initializing ChatGroq LLM...")
+            llm = ChatGroq(model=settings.MODEL_NAME, api_key=settings.GROQ_KEY)
+
+        system_message = SystemMessage(content=SYSTEM_PROMPT)
+        human_message = HumanMessage(content=f"""Here is the user's query: {state['query']}.\n
+        Use the following document titles **exactly as provided** when calling the `search_document` tool:\n
+        {json.dumps(state['doc_titles'])}
+        """)
+
+        agent = create_react_agent(llm, tools)
+        inputs = {"messages": [system_message, human_message]}
+
+        logger.info("Invoking LLM with user query...")
+        llm_response = agent.invoke(inputs)
+
+        raw_response = llm_response['messages'][-1].content
+
+        try:
+            res = json.loads(raw_response)
+            state['response'] = res.get('response', "Sorry, I couldn't find any relevant information.")
+        except json.JSONDecodeError:
+            logger.error(f"Malformed JSON from LLM: {raw_response}")
+            state['response'] = "Error processing the response from the assistant."
+
+        logger.info(f"Assistant response: {state['response']}")
+        return state
+
+    except Exception as e:
+        logger.error(f"Error in assistant function: {str(e)}")
+        state['response'] = "An internal error occurred while processing your query."
+        return state
