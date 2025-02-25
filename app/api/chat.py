@@ -17,6 +17,12 @@ async def chat(
     agent: Graph = Depends(get_graph)
 ):
     try:
+        
+        if message == "":
+            raise HTTPException(status_code=400, detail="Query cannot be empty")
+        if len(doc_titles) == 0 or not isinstance(doc_titles, list):
+            raise HTTPException(status_code=400, detail="Document titles malformed or empty")
+        
         initial_state = {"query": message, "doc_titles": doc_titles}
         final_state = agent.graph.invoke(initial_state)
 
