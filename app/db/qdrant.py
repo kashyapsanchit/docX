@@ -2,7 +2,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from app.core.config import settings
 
-qdrant_client = QdrantClient(url=settings.QDRANT_HOST, api_key=settings.QDRANT_KEY)
+qdrant_client = QdrantClient(url=settings.QDRANT_HOST, api_key=settings.QDRANT_KEY, timeout=30)
 
 COLLECTION_NAME = "documents"
 
