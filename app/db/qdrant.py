@@ -25,8 +25,4 @@ def ensure_collection_exists(client: QdrantClient, collection_name: str, vector_
 
 qdrant_client = get_qdrant_client()
 
-collection_to_use = (
-    settings.QDRANT_TEST_COLLECTION_NAME if settings.ENV == "testing" else settings.QDRANT_COLLECTION_NAME
-)
-
-ensure_collection_exists(qdrant_client, collection_to_use)
+ensure_collection_exists(qdrant_client, settings.QDRANT_COLLECTION_NAME)
