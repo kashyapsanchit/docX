@@ -3,17 +3,9 @@ from qdrant_client.models import VectorParams, Distance
 from app.core.config import settings
 from app.core.logger import logger
 
-COLLECTION_NAME = "documents"
-
 def get_qdrant_client() -> QdrantClient:
-    """Initialize Qdrant client with settings."""
-    try:
-        client = QdrantClient(url=settings.QDRANT_HOST, api_key=settings.QDRANT_KEY, timeout=30)
-        logger.info("Qdrant client initialized successfully.")
-        return client
-    except Exception as e:
-        logger.error(f"Failed to initialize Qdrant client: {str(e)}")
-        raise
+    """Initialize and return a Qdrant client."""
+    return QdrantClient(url=settings.QDRANT_HOST, api_key=settings.QDRANT_KEY, timeout=30)
 
 def ensure_collection_exists(client: QdrantClient, collection_name: str, vector_size: int = 384):
     """Ensure the specified collection exists in Qdrant."""
@@ -32,4 +24,9 @@ def ensure_collection_exists(client: QdrantClient, collection_name: str, vector_
         raise
 
 qdrant_client = get_qdrant_client()
-ensure_collection_exists(qdrant_client, COLLECTION_NAME)
+
+collection_to_use = (
+    settings.QDRANT_TEST_COLLECTION_NAME if settings.ENV == "testing" else settings.QDRANT_COLLECTION_NAME
+)
+
+ensure_collection_exists(qdrant_client, collection_to_use)
