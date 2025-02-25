@@ -17,15 +17,16 @@ class Ingestion(EmbeddingUtils):
 
             points = []
             text_data = extract_data_from_document(content)
+            id = str(uuid.uuid4())
 
             for text in text_data:
-
+                
                 embedding = self.generate_embedding(str(text))
                 points.append(
                     PointStruct(
                         id=str(uuid.uuid4()),
                         vector=embedding,
-                        payload={"id": str(uuid.uuid4()), "text": text, "title": title}  
+                        payload={"id": id, "text": text, "title": title}  
                     )
                 )
 
