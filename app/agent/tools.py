@@ -33,9 +33,9 @@ def search_document(query: str, doc_titles: List[str], limit: int = 30, client=q
         )
 
         logger.info(f"Performing search in collection '{settings.QDRANT_COLLECTION_NAME}' with limit {limit}")
-        response = client.search(
+        response = client.query_points(
             collection_name=settings.QDRANT_COLLECTION_NAME,
-            query_vector=query_embedding,
+            query=query_embedding,
             query_filter=search_filter,
             limit=limit
         )
