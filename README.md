@@ -52,6 +52,12 @@ streamlit run streamlit_app.py
 ```
 - **Access**: The project will be up and running at `http://localhost:8501`
 
+## Running using Docker
+- **Run using Docker**: Alternatively you can also run using docker using the following command:
+```bash
+docker-compose up --build
+```
+
 ## Running Tests
 
 - Tests have been written using the fastapi testclient alongwith pytest.
