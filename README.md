@@ -35,13 +35,35 @@ source env/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-- **Run the backend**: Inside the project folder run the following command.
+- **Create .env**: Create and add the below required environment variables.
+```bash
+QDRANT_HOST="{your_qdrant_host}"
+QDRANT_KEY="{your_qdrant_key}"
+MODEL_NAME="llama-3.1-8b-instant" # In this example we have used llama-3.1-8b as our LLM. 
+GROQ_KEY="{your_groq_key}" 
+ENV="development"
+QDRANT_COLLECTION_NAME="documents"
+```
+
+- **Spin up the server**: Inside the project folder run the following commands.
 ```bash
 uvicorn app.main:app --reload
-```
-- **Run the frontend**: Inside the project folder run the following command.
-```bash
 streamlit run streamlit_app.py
 ```
 - **Access**: The project will be up and running at `http://localhost:8501`
 
+## Running Tests
+
+- Tests have been written using the fastapi testclient alongwith pytest.
+- **Change .env for testing**: Change the below parameters in the .env before running tests.
+```bash
+ENV="testing"
+QDRANT_COLLECTION_NAME="test_documents"
+```
+- Doing so ensures that the main collection is not affected due to testcases.
+- Cleanup is done after tests complete so that no test data persists in the cloud vector store.
+
+- **Run**: Run tests using the below after you have done all the required changes:
+```bash
+pytest
+```

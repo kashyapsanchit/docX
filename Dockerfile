@@ -20,5 +20,3 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000  
 EXPOSE 8501  
-
-CMD ["sh", "-c", "uvicorn src.app.main:app & streamlit run src/streamlit_app.py"]
